@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<project name="Pbexp" basedir="." default="package">
+	<property file="build.properties"/>
+
+	<path id="master-classpath" >
+		<pathelement location="${build.dir}"/>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>			
+
+	<!-- clean target: clean all classes and jars from build folder -->
+	<target name="clean" description="Cleaning all build files">
+		<delete>
+			<fileset dir="${build.dir}">
+				<include name="**/*.class"/>
+				<include name="**/*.jar"/>
+			</fileset>
+		</delete>
+	</target>
+
+	<!-- build target: compile source -->
+	<target name="build" description="Compile source tree">
+		<mkdir dir="${build.dir}"/>
+		<javac 
+			srcdir="${src.dir}"
+			destdir="${build.dir}"
+			classpathref="master-classpath"
+			source="1.8"
+			target="1.8"
+			debug="true"
+			deprecation="true"
+			optimize="false"
+			failonerror="true">
+		</javac>
+	</target>
+
+	<!-- package target: produce jar -->
+	<target name="package" description="Produce jar archive"  depends="build">
+		
+		<jar 
+			destfile="${dist.dir}/${project.name}-${version}.${subversion}.${revision}_${build.version}.jar"
+			basedir="${build.dir}"			 
+			excludes="**/*Test*.class" />
+	</target>
+</project>
