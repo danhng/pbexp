@@ -40,7 +40,7 @@
 	<target name="package" description="Produce jar archive"  depends="clean, build">
 		
 		<jar 
-			destfile="${dist.dir}/${project.name}-${version}.${subversion}.${revision}_${build.version}.jar"
+			destfile="${dist.dir}/${project.name}-${version}.${subversion}.${revision}_${build.version}_c${targetVM.version}.jar"
 			basedir="${build.dir}"			 
 			excludes="**/*Test*.class" />
 	</target>
