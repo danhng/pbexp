@@ -35,6 +35,8 @@ public class ExpressionTest {
     Operator neg = Operator.get(Operator.NEGATION);
     Operator multi = Operator.get(Operator.MULTIPLICATION);
 
+
+
     // OK
     // 3 + 2 * 4 = 11
 //        calverter.Expression e1 = new calverter.Expression("3 + 2 * 4");
@@ -90,6 +92,26 @@ public class ExpressionTest {
         // -5090;
         Debug.debug(e4.toShortString());
         assertTrue(e4.compute_internal().toDecimal().doubleValue() == 32);
+
+    }
+
+    @Test
+    public void test_compute_internal_clearance() {
+        Expression e4 = new Expression("22");
+        e4.addExpressibles(     a, plus, Expression.Clearance.getClear());
+        // -5090;
+        Debug.debug(e4.toShortString());
+        assertTrue(e4.compute_internal().toDecimal().doubleValue() == a.getFvalue());
+
+    }
+
+    @Test
+    public void test_compute_internal_clearanceAll() {
+        Expression e4 = new Expression("22");
+        e4.addExpressibles(     a, plus, Expression.Clearance.getClearAll());
+        // -5090;
+        Debug.debug(e4.toShortString());
+        assertTrue(e4.isEmpty());
 
     }
 }

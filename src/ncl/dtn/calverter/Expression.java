@@ -14,7 +14,7 @@ package calverter;// Maths Expressions Parser
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.stream.Collectors;
+
 /**
  * WARN! calverter.Operator objects cannot be reused. It is recommended that {@link Operator#get(int)} method is used to get a new
  * instance of some operator. calverter.Operator reuses might cause erroneous behaviours.
@@ -56,6 +56,103 @@ public class Expression {
         return innerLevel <= 0 ?
                 PBEXPException.PARENTHESES_NOT_OPENED_BEFORE_CLOSED : last().toCategory() == Expressible.Category.OPERATOR
                          ? PBEXPException.PARENTHESES_EXPRESSION_INCOMPLETE : 0; // todo
+    }
+
+    public boolean isEmpty() {
+        return internals_mutated.size() == 0;
+    }
+    public static class Clearance implements Expressible {
+        private Category type;
+
+        private String rep;
+
+        private Clearance(Category type, String rep) {
+            this.rep = rep;
+            this.type = type;
+        }
+
+        private static final String CLEAR = "X";
+
+        private static final String CLEAR_ALL = "XE";
+
+        public static Clearance getClear() {
+            return new Clearance(Category.CLEAR, CLEAR);
+        }
+
+        public static Clearance getClearAll() {
+            return new Clearance(Category.CLEAR_ALL, CLEAR_ALL);
+        }
+
+
+        /**
+         * @return the string representation of the calverter.Expressible
+         */
+        @Override
+        public String toRep() {
+            return rep;
+        }
+
+        /**
+         * @return the simplified form which in many case is the notation of the calverter.Expressible
+         */
+        @Override
+        public String toSimplifiedRep() {
+            return toRep();
+        }
+
+        /**
+         * @return the category of the calverter.Expressible.
+         */
+        @Override
+        public Category toCategory() {
+            return type;
+        }
+
+        /**
+         * Attempts to cast the calverter.Expressible to an calverter.Evaluable
+         *
+         * @return the cast calverter.Evaluable
+         * @throws ClassCastException if the calverter.Expressible cannot be cast to calverter.Evaluable
+         */
+        @Override
+        public Evaluable toEvaluable() throws PBEXPException {
+            throw new PBEXPException(PBEXPException.CLASS_CAST_EXCEPTION, "Clearance class does not implement calverter.Evaluable.");
+        }
+
+        /**
+         * Attempts to cast the calverter.Expressible to an calverter.Operator
+         *
+         * @return the cast calverter.Operator
+         * @throws ClassCastException if the calverter.Expressible cannot be cast to calverter.Operator
+         */
+        @Override
+        public Operator toOperator() {
+
+            throw new PBEXPException(PBEXPException.CLASS_CAST_EXCEPTION, "Clearance objects cannot be cast to calverter.Operator class.");
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public boolean isOperand() {
+            return false;
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public boolean isOperator() {
+            return false;
+        }
+
+        @Override
+        public Expressible clone() {
+            if (type == Category.CLEAR)
+                return getClear();
+            return getClearAll();
+        }
     }
 
     public static class Parenthesis implements Expressible {
@@ -503,48 +600,59 @@ public class Expression {
             Debug.warn("calverter.Expressible %s already in the expression. Proceed with caution.\n", e.toRep());
         }
 
-        if (e.toCategory() == Expressible.Category.PARENTHESIS_OPEN) {
-            innerLevel++;
-            Debug.debug("Opening parenthesis. New inner level %d\n", innerLevel);
-        }
-        if (e.toCategory() == Expressible.Category.PARENTHESIS_CLOSE) {
-            int closeOk = canCloseP();
-            if (closeOk == 0) {
-                innerLevel--;
-                Debug.debug("Closing parenthesis. New inner level %d\n", innerLevel);
-            }
+        if (e.toCategory() == Expressible.Category.CLEAR) {
+            if (!internals_mutated.isEmpty())
+                internals_mutated.removeLast();
             else
-                throw new PBEXPException(closeOk, "Index of closing parenthesis: " + (internals_mutated.size()));
-        }
-        // raise priority if calverter.Expressible is calverter.Operator
-        if (e.toCategory() == Expressible.Category.OPERATOR) {
-            Operator o = e.toOperator();
-            o.setPriority(o.getPriority() + innerLevel * Operator.JUMP_PRIORITY);
-        }
+                Debug.warn("Warn. Clearing empty Expression.");
+            return this;
+        } else if (e.toCategory() == Expressible.Category.CLEAR_ALL) {
+            if (!internals_mutated.isEmpty())
+                internals_mutated.clear();
+            else
+                Debug.warn("Warn. Clearing All empty Expression");
+            return this;
+        } else {
 
-        if (internals_mutated.isEmpty() || Rules.validate(internals_mutated.getLast(), e)) {
-            //merge last operand if arg is numeric
-            if (!internals_mutated.isEmpty() && internals_mutated.getLast().isOperand() && e.isOperand()) {
-                Debug.debug("[%d] MERGING %s\n", internals_mutated.size(), e.toRep());
-                Number n = (Number) internals_mutated.getLast().toEvaluable();
-                if (!n.appendString(e.toRep())) {
-                    throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
-                            ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
-                }
-                else {
-                    Debug.debug("Merge complete: %s\n", n.getUserInput());
-                }
+            if (e.toCategory() == Expressible.Category.PARENTHESIS_OPEN) {
+                innerLevel++;
+                Debug.debug("Opening parenthesis. New inner level %d\n", innerLevel);
             }
-            else {
-                internals_original.add(e);
-                internals_mutated.add(e);
+            if (e.toCategory() == Expressible.Category.PARENTHESIS_CLOSE) {
+                int closeOk = canCloseP();
+                if (closeOk == 0) {
+                    innerLevel--;
+                    Debug.debug("Closing parenthesis. New inner level %d\n", innerLevel);
+                } else
+                    throw new PBEXPException(closeOk, "Index of closing parenthesis: " + (internals_mutated.size()));
+            }
+            // raise priority if calverter.Expressible is calverter.Operator
+            if (e.toCategory() == Expressible.Category.OPERATOR) {
+                Operator o = e.toOperator();
+                o.setPriority(o.getPriority() + innerLevel * Operator.JUMP_PRIORITY);
             }
 
-        }
-        else throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
-                ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+            if (internals_mutated.isEmpty() || Rules.validate(internals_mutated.getLast(), e)) {
+                //merge last operand if arg is numeric
+                if (!internals_mutated.isEmpty() && internals_mutated.getLast().isOperand() && e.isOperand()) {
+                    Debug.debug("[%d] MERGING %s\n", internals_mutated.size(), e.toRep());
+                    Number n = (Number) internals_mutated.getLast().toEvaluable();
+                    if (!n.appendString(e.toRep())) {
+                        throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
+                                ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+                    } else {
+                        Debug.debug("Merge complete: %s\n", n.getUserInput());
+                    }
+                } else {
+                    internals_original.add(e);
+                    internals_mutated.add(e);
+                }
 
-        return this;
+            } else throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
+                    ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+
+            return this;
+        }
     }
 
     Expression addExpressibles(Expressible... e) {

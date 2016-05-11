@@ -34,7 +34,7 @@ import java.util.*;
  *         <br> Date created: 19/03/2016
  */
 
-  class Operator implements Expressible, Comparable<Operator>, Cloneable {
+ public class Operator implements Expressible, Comparable<Operator>, Cloneable {
 
     // IDs used for public operator retrievals
 
@@ -117,6 +117,10 @@ import java.util.*;
 
     // parentheses enclosed operator got promoted and are guaranteed to have a higher priority than the unenclosed operators.
     static final int JUMP_PRIORITY = 8;
+
+    private static final int CLEAR_PRIORITY = 9;
+
+    private static final int CLEAR_ALL_PRIORITY = 9;
 
 
     /**
