@@ -8,4 +8,9 @@ src/ncl/dtn/lib/
 src/ncl/dtn/dtn.iml
 
 .idea/
+
 out/
+
+**/*.iml 
+
+#idea 

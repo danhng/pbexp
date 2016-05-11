@@ -37,7 +37,7 @@
 	</target>
 
 	<!-- package target: produce jar -->
-	<target name="package" description="Produce jar archive"  depends="build">
+	<target name="package" description="Produce jar archive"  depends="clean, build">
 		
 		<jar 
 			destfile="${dist.dir}/${project.name}-${version}.${subversion}.${revision}_${build.version}.jar"
