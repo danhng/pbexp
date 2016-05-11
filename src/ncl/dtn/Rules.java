@@ -38,7 +38,7 @@ final class Rules {
     private static int[] closingPRules = {NO, OK, IND, OK, NO};
     private static int[] unaryRules = {OK, NO , OK, IND, IND};
     private static int[] binaryRules = {OK, NO , OK, NO, OK};
-    private static int[] operandRules = {NO, OK , IND, OK, NO};
+    private static int[] operandRules = {NO, OK , IND, OK, OK};
 
     static boolean validate(Expressible first, Expressible second) {
         switch (first.toCategory()) {

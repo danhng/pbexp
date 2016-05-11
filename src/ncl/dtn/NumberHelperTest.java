@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IntSummaryStatistics;
 
-import static org.junit.Assert.*;
+    import static org.junit.Assert.*;
 
 /**
  * @author Danh Thanh Nguyen <d.t.nguyen@newcastle.ac.uk>

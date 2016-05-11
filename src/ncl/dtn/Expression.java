@@ -43,7 +43,7 @@ public class Expression {
     // an expression can only be computed if the innerLevel is 0
     private int innerLevel;
 
-    private Expression(String rep) {
+    public Expression(String rep) {
         this.rep = rep;
         internals_original = new LinkedList<>();
         internals_mutated = new LinkedList<>(internals_original);
@@ -133,6 +133,22 @@ public class Expression {
             throw new PBEXPException(PBEXPException.CLASS_CAST_EXCEPTION, "Parenthesis objects cannot be cast to Operator class.");
         }
 
+        /**
+         * @return
+         */
+        @Override
+        public boolean isOperand() {
+            return false;
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public boolean isOperator() {
+            return false;
+        }
+
         @Override
         public Expressible clone() {
             if (type == Category.PARENTHESIS_CLOSE)
@@ -203,10 +219,10 @@ public class Expression {
      * @throws ClassCastException
      * @throws IllegalStateException
      */
-    private Evaluable compute_internal() throws PBEXPException {
+     Evaluable compute_internal() throws PBEXPException {
         Debug.info("INPUT EXPRESSION: %s\n", toString());
 
-        if(getExpressibleCount(Expressible.Category.OPERATOR) == 0)
+        if(getExpressibleCount(Expressible.Category.OPERATOR) == 0 && getExpressibleCount(Expressible.Category.OPERAND) == 0)
             throw new PBEXPException(PBEXPException.EXPRESSION_EMPTY, toString_internals(internals_original, false));
 
         if (isResolved())
@@ -495,9 +511,24 @@ public class Expression {
             o.setPriority(o.getPriority() + innerLevel * Operator.JUMP_PRIORITY);
         }
 
-        if (Rules.validate(internals_mutated.getLast(), e)) {
-            internals_original.add(e);
-            internals_mutated.add(e);
+        if (internals_mutated.isEmpty() || Rules.validate(internals_mutated.getLast(), e)) {
+            //merge last operand if arg is numeric
+            if (!internals_mutated.isEmpty() && internals_mutated.getLast().isOperand() && e.isOperand()) {
+                Debug.debug("[%d] MERGING %s\n", internals_mutated.size(), e.toRep());
+                Number n = (Number) internals_mutated.getLast().toEvaluable();
+                if (!n.appendString(e.toRep())) {
+                    throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
+                            ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+                }
+                else {
+                    Debug.debug("Merge complete: %s\n", n.getUserInput());
+                }
+            }
+            else {
+                internals_original.add(e);
+                internals_mutated.add(e);
+            }
+
         }
         else throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
                 ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
@@ -596,15 +627,15 @@ public class Expression {
         // nest
         // (3 + 2) * (4 - (1000 + 22)) =  -5090
         Expression e4 = new Expression("( 3 + 2 ) * ( 4 ");
-        e4.addExpressibles(     Parenthesis.getOpening(), a, plus, b,
-                                Parenthesis.getClosing(),
-                            multi,
-                                Parenthesis.getOpening(), c, subtract,
-                                        Parenthesis.getOpening(), d, plus2, e,
-                                        Parenthesis.getClosing(),
-                                Parenthesis.getClosing());
-
+//        e4.addExpressibles(     Parenthesis.getOpening(), a, plus, b,
+//                                Parenthesis.getClosing(),
+//                            multi,
+//                                Parenthesis.getOpening(), c, subtract,
+//                                        Parenthesis.getOpening(), d, plus2, e,
+//                                        Parenthesis.getClosing(),
+//                                Parenthesis.getClosing());
         System.out.println(e4.validate());
         e4.compute_internal();
     }
+
 }

@@ -14,6 +14,8 @@
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Locale;
 
 /**
  * @author Danh Thanh Nguyen <d.t.nguyen@newcastle.ac.uk>
@@ -36,7 +38,7 @@ public class Number implements Evaluable, Expressible {
     public static final Character[][] DIGITS = {
             {'0', '1'},
             {'0', '1', '2', '3', '4', '5', '6', '7'},
-            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'},
             {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}};
 
     // conventional groups of digits in formats for improved readability
@@ -68,28 +70,22 @@ public class Number implements Evaluable, Expressible {
     // constructors
     public Number(int modeIn, String rep) {
         this.modeIn = modeIn;
-        this.userInput = rep;
-        updateStringReps();
+        setUserInput(rep);
     }
 
-    public Number(long iValue, double fValue) {
-        this.ivalue = iValue;
-        this.fvalue = fValue;
-        modeIn = DEC_MODE;
-        userInput = String.valueOf(fValue);
-        updateStringReps();
-    }
+//    public Number(long iValue, double fValue) {
+//        if (Math.round(fValue) != iValue)
+//            throw new IllegalStateException("Cannot create Number object with unequivalent fVal and iVal.");
+//
+//    }
 
     /**
      * default fValue
      * @param iValue
      */
     public Number(long iValue) {
-        this.ivalue = iValue;
-        fvalue = (double) iValue;
-        userInput = String.valueOf(iValue);
         modeIn = DEC_MODE;
-        updateStringReps();
+        setUserInput(String.valueOf(iValue));
     }
 
     /**
@@ -97,11 +93,8 @@ public class Number implements Evaluable, Expressible {
      * @param fValue
      */
     public Number(double fValue) {
-        this.fvalue = fValue;
-        ivalue = Math.round(fValue);
-        userInput = String.valueOf(fValue);
         modeIn = DEC_MODE;
-        updateStringReps();
+        setUserInput(String.valueOf(fValue));
     }
 
     /**
@@ -114,6 +107,8 @@ public class Number implements Evaluable, Expressible {
 
     public void setUserInput(String userInput) {
         this.userInput = userInput;
+        updateStringReps();
+        reloadI_F_Values();
     }
 
     /**
@@ -121,7 +116,27 @@ public class Number implements Evaluable, Expressible {
      */
     private void refresh() {
         reps = NumberHelper.toFormats(userInput, modeIn, NO_FORMAT);
+        // fixes bug on merging operands
+
+
         }
+
+    private void reloadI_F_Values() {
+        if (modeIn == DEC_MODE) {
+            if (NumberHelper.isFloat(userInput)) {
+                fvalue = Double.valueOf(userInput);
+                ivalue = Math.round(fvalue);
+            } else {
+                ivalue = Long.valueOf(userInput);
+                fvalue = ivalue;
+            }
+        }
+        else {
+            ivalue = Long.valueOf(reps[DEC_MODE]);
+            fvalue = ivalue;
+        }
+
+    }
 
     public double getFvalue() {
         return fvalue;
@@ -204,7 +219,9 @@ public class Number implements Evaluable, Expressible {
 
     @Override
     public String toRep() {
-        return String.valueOf(fvalue);
+        if (NumberHelper.isFloat(userInput))
+            return String.valueOf(fvalue);
+        return String.valueOf(ivalue);
     }
 
     /**
@@ -236,6 +253,22 @@ public class Number implements Evaluable, Expressible {
         throw new ClassCastException("Number objects cannot be cast to Operator: " + toRep());
     }
 
+    /**
+     * @return
+     */
+    @Override
+    public boolean isOperand() {
+        return true;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public boolean isOperator() {
+        return false;
+    }
+
     @Override
     public Expressible clone() {
         Number n = new Number(modeIn, userInput);
@@ -243,5 +276,35 @@ public class Number implements Evaluable, Expressible {
         n.setIvalue(ivalue);
         n.setReps(reps);
         return n;
+    }
+
+    public boolean appendChar(char in) {
+        if (!isCharValid(in))
+            return false;
+       setUserInput( userInput + String.valueOf(in));
+        return true;
+    }
+
+    public boolean appendString(String in) {
+        int originalL = userInput.length();
+        for (int i = 0; i < in.length(); i++)
+        {
+            if (!appendChar(in.charAt(i)))
+            {
+                setUserInput(userInput.substring(0, originalL)); // roll back
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isCharValid(char in) {
+        if (in == '.' && userInput.contains("."))
+            return false;
+        for(Character c: DIGITS[modeIn])
+            if (c == in) {
+                return true;
+            }
+        return  false;
     }
 }

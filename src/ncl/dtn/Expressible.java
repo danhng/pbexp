@@ -59,6 +59,18 @@ public interface Expressible{
      */
     Operator toOperator();
 
+    /**
+     *
+     * @return
+     */
+    boolean isOperand();
+
+    /**
+     *
+     * @return
+     */
+    boolean isOperator();
+
     Expressible clone();
 
 }

@@ -36,23 +36,23 @@ public class NumberHelper {
 
     /**
      * Analyse the rep to see if it's a float number or not.
-     * Examples of float number: 1.2, -1.2, .5, -0.5
-     * Examples of non-float (int): 1, 1., 123, 0123.
+     * Examples of float number: 1.2, -1.2, .5, -0.5, 1.
+     * Examples of non-float (int): 1, 123, 0123.
      * @param rep the string to be analysed
      * @return true if rep is of float form, false otherwise (error or int).
      */
     public static boolean isFloat(String rep) {
-        rep = rep.trim();
-//        if (rep.charAt(0) == '-')
-//            rep = rep.substring(1);
-        String[] parts = rep.split("\\."); // split on decimal point
-
-        if (parts.length > 2) {
-            Debug.debug("rep %s is not a legal number.\n", rep);
-            return false;
-        }
+//        rep = rep.trim();
+////        if (rep.charAt(0) == '-')
+////            rep = rep.substring(1);
+//        String[] parts = rep.split("\\."); // split on decimal point
+//
+//        if (parts.length > 2) {
+//            Debug.debug("rep %s is not a legal number.\n", rep);
+//            return false;
+//        }
         // return true only if there are both int part and dec part and dec part is not empty
-        return parts.length == 2 && !parts[1].isEmpty() && !parts[1].matches("0*");
+        return rep.matches("-?[0-9]+\\.[0-9]*");
     }
 
     public static String[] toFormats(String rep, int modeIn, int format) {

@@ -255,6 +255,22 @@ import java.util.*;
         return this;
     }
 
+    /**
+     * @return
+     */
+    @Override
+    public boolean isOperand() {
+        return false;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public boolean isOperator() {
+        return true;
+    }
+
     @Override
     public int compareTo(Operator o) {
         return priority - o.getPriority();
@@ -378,6 +394,15 @@ import java.util.*;
 
     boolean isBinary() {
         return getOperandsCount() == 2;
+    }
+
+    static boolean outFloat(Evaluable... terms) {
+        for (Evaluable n : terms) {
+            Number o = (Number) n;
+            if (NumberHelper.isFloat(o.toSimplifiedRep()))
+                return true;
+        }
+        return false;
     }
 
 
@@ -667,7 +692,7 @@ import java.util.*;
             long iValue = terms[0].toInteger().longValue() * terms[1].toInteger().longValue();
             double fValue = terms[0].toDecimal().doubleValue() * terms[1].toDecimal().doubleValue();
 
-            return new Number(iValue, fValue);
+            return new Number(outFloat(terms) ? fValue : iValue);
         }
 
         @Override
@@ -696,7 +721,7 @@ import java.util.*;
             long iValue = terms[0].toInteger().longValue() - terms[1].toInteger().longValue();
             double fValue = terms[0].toDecimal().doubleValue() - terms[1].toDecimal().doubleValue();
 
-            return new Number(iValue, fValue);
+            return new Number(outFloat(terms) ? fValue : iValue);
         }
 
         @Override
@@ -725,7 +750,7 @@ import java.util.*;
             long iValue = terms[0].toInteger().longValue() + terms[1].toInteger().longValue();
             double fValue = terms[0].toDecimal().doubleValue() + terms[1].toDecimal().doubleValue();
 
-            return new Number(iValue, fValue);
+            return new Number(outFloat(terms) ? fValue : iValue);
         }
 
         @Override

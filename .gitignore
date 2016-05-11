@@ -4,3 +4,8 @@ build/
 # temp swap files
 *.swp
 
+src/ncl/dtn/lib/
+src/ncl/dtn/dtn.iml
+
+.idea/
+out/
