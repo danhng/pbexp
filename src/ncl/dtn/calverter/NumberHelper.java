@@ -310,7 +310,7 @@ public class NumberHelper {
                 break;
             }
             case Number.HEX_MODE: {
-                regex = "[0G-9A-Fa-f]+";
+                regex = "[0-9A-Fa-f]+";
                 break;
             }
             default:{
