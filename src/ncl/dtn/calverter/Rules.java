@@ -28,15 +28,17 @@ final class Rules {
     private static final int UNARY = 2;
     private static final int BINARY = 3;
     private static final int OP = 4;
+    private static final int FL = 5;
 
     /**
      * calverter.Rules
      */
-    private static int[] openingPRules = {OK, NO , OK, NO, OK};
-    private static int[] closingPRules = {NO, OK, IND, OK, NO};
-    private static int[] unaryRules = {OK, NO , OK, IND, IND};
-    private static int[] binaryRules = {OK, NO , OK, NO, OK};
-    private static int[] operandRules = {NO, OK , IND, OK, OK};
+    private static int[] openingPRules = {OK, NO , OK, NO, OK, NO};
+    private static int[] closingPRules = {NO, OK, IND, OK, NO, NO};
+    private static int[] unaryRules = {OK, NO , OK, IND, IND, NO};
+    private static int[] binaryRules = {OK, NO , OK, NO, OK, NO};
+    private static int[] operandRules = {NO, OK , IND, OK, OK, IND};
+    private static int[] floatRules = {NO, NO, NO, NO, IND, NO};
 
     static boolean validate(Expressible first, Expressible second) {
         switch (first.toCategory()) {
@@ -44,6 +46,9 @@ final class Rules {
                 // operand unary
                 if (second.toCategory() == Expressible.Category.OPERATOR && second.toOperator().isUnary())
                     return second.toOperator().getDirection() == Operator.AssociatingDirection.RIGHT;
+                // float point duplication
+                if (second.toCategory() == Expressible.Category.FLOAT)
+                    return !NumberHelper.isFloat(first.toSimplifiedRep());
                 return operandRules[toRuleID(second)] != NO;
             }
             case OPERATOR: {
@@ -64,6 +69,12 @@ final class Rules {
                     return second.toOperator().getDirection() == Operator.AssociatingDirection.LEFT;
                 }
                 return closingPRules[toRuleID(second)] != NO;
+            }
+            case FLOAT:
+            {
+                if (second.toCategory() == Expressible.Category.OPERAND)
+                    return !NumberHelper.isFloat(second.toSimplifiedRep());
+                return floatRules[toRuleID(second)] != NO;
             }
         }
         return false;
@@ -92,6 +103,8 @@ final class Rules {
                 return OPENING_P;
             case PARENTHESIS_CLOSE:
                 return CLOSING_P;
+            case FLOAT:
+                return FL;
             default:
                 throw new IllegalArgumentException("calverter.Expressible of type " + expressible.toCategory() + " does not have a rule ID.");
         }

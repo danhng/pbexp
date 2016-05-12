@@ -73,7 +73,7 @@ public class Expression {
 
         private static final String CLEAR = "X";
 
-        private static final String CLEAR_ALL = "XE";
+        private static final String CLEAR_ALL = "XX";
 
         public static Clearance getClear() {
             return new Clearance(Category.CLEAR, CLEAR);
@@ -152,6 +152,85 @@ public class Expression {
             if (type == Category.CLEAR)
                 return getClear();
             return getClearAll();
+        }
+    }
+
+    public static class FloatPoint implements Expressible {
+        private final String rep = ".";
+
+        private final Category type = Category.FLOAT;
+
+        private FloatPoint() {}
+
+        /**
+         * @return the string representation of the calverter.Expressible
+         */
+        @Override
+        public String toRep() {
+            return ".";
+        }
+
+        /**
+         * @return the simplified form which in many case is the notation of the calverter.Expressible
+         */
+        @Override
+        public String toSimplifiedRep() {
+            return ".";
+        }
+
+        /**
+         * @return the category of the calverter.Expressible.
+         */
+        @Override
+        public Category toCategory() {
+            return Category.FLOAT;
+        }
+
+        /**
+         * Attempts to cast the calverter.Expressible to an calverter.Evaluable
+         *
+         * @return the cast calverter.Evaluable
+         * @throws ClassCastException if the calverter.Expressible cannot be cast to calverter.Evaluable
+         */
+        @Override
+        public Evaluable toEvaluable() throws PBEXPException {
+            throw new PBEXPException(PBEXPException.CLASS_CAST_EXCEPTION, "Float point cannot be cast to Evaluable");
+        }
+
+        /**
+         * Attempts to cast the calverter.Expressible to an calverter.Operator
+         *
+         * @return the cast calverter.Operator
+         * @throws ClassCastException if the calverter.Expressible cannot be cast to calverter.Operator
+         */
+        @Override
+        public Operator toOperator() {
+            throw new PBEXPException(PBEXPException.CLASS_CAST_EXCEPTION, "Float point cannot be cast to Evaluable");
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public boolean isOperand() {
+            return true;
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public boolean isOperator() {
+            return false;
+        }
+
+        @Override
+        public Expressible clone() {
+            return new FloatPoint();
+        }
+
+        public static Expressible get() {
+            return new FloatPoint();
         }
     }
 
@@ -637,6 +716,7 @@ public class Expression {
                 if (!internals_mutated.isEmpty() && internals_mutated.getLast().isOperand() && e.isOperand()) {
                     Debug.debug("[%d] MERGING %s\n", internals_mutated.size(), e.toRep());
                     Number n = (Number) internals_mutated.getLast().toEvaluable();
+                    //float point rule violation is included too.
                     if (!n.appendString(e.toRep())) {
                         throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
                                 ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");

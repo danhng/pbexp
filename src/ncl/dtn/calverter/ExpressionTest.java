@@ -87,22 +87,27 @@ public class ExpressionTest {
 
     @Test
     public void test_compute_internal_nextOpes() {
+        Debug.info("TEST COMPUTE INTERNAL NEXTOPES");
         Expression e4 = new Expression("22");
         e4.addExpressibles(     a, b);
         // -5090;
         Debug.debug(e4.toShortString());
         assertTrue(e4.compute_internal().toDecimal().doubleValue() == 32);
 
+        Debug.info("TEST COMPUTE INTERNAL NEXTOPES END");
     }
 
     @Test
     public void test_compute_internal_clearance() {
+
+        Debug.info("TEST COMPUTE INTERNAL CLEARANCE");
         Expression e4 = new Expression("22");
         e4.addExpressibles(     a, plus, Expression.Clearance.getClear());
         // -5090;
         Debug.debug(e4.toShortString());
         assertTrue(e4.compute_internal().toDecimal().doubleValue() == a.getFvalue());
 
+        Debug.info("TEST COMPUTE INTERNAL CLEARANCE END");
     }
 
     @Test
@@ -112,6 +117,15 @@ public class ExpressionTest {
         // -5090;
         Debug.debug(e4.toShortString());
         assertTrue(e4.isEmpty());
+
+    }
+
+    @Test
+    public void test_compute_internal_FloatPoint() {
+        Expression e4 = new Expression("22");
+        e4.addExpressibles(     a, Expression.FloatPoint.get());
+        Debug.debug(e4.toShortString());
+        // -5090;
 
     }
 }
