@@ -38,7 +38,7 @@ final class Rules {
     private static int[] unaryRules = {OK, NO , OK, IND, IND, NO};
     private static int[] binaryRules = {OK, NO , OK, NO, OK, NO};
     private static int[] operandRules = {NO, OK , IND, OK, OK, IND};
-    private static int[] floatRules = {NO, NO, NO, NO, IND, NO};
+    private static int[] floatRules = {NO, NO, NO, NO, IND, NO}; // strict mode on floating point
 
     static boolean validate(Expressible first, Expressible second) {
         switch (first.toCategory()) {

@@ -38,7 +38,7 @@ public interface Evaluable {
      *
      * @return the decimal evaluated from the object
      */
-    BigDecimal toDecimal();
+    Double toDecimal();
 
     /**
      * Return the evaluated integer.
@@ -48,7 +48,6 @@ public interface Evaluable {
      *
      * @return the integer evaluated from the object
      */
-    BigInteger toInteger();
-
+    Long toInteger();
 
 }

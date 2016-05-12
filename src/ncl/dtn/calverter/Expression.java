@@ -39,6 +39,10 @@ public class Expression {
     // an expression can only be computed if the innerLevel is 0
     private int innerLevel;
 
+
+    // card float points
+    private int floatLevel;
+
     public Expression(String rep) {
         this.rep = rep;
         internals_original = new LinkedList<>();
@@ -46,6 +50,11 @@ public class Expression {
         iterator = internals_mutated.listIterator();
         resolved = isResolved_internal();
         innerLevel = 0;
+        floatLevel = 0;
+    }
+
+    private boolean inFloatMode(){
+        return floatLevel > 0;
     }
 
     private Expressible last() {
@@ -330,7 +339,7 @@ public class Expression {
     }
 
     private boolean isResolved_internal() {
-        Debug.debug("operand: %d, operator: %d, inner level: %s\n", getExpressibleCount(Expressible.Category.OPERAND),
+        Debug.debug("Called isResolvedInternal? : operand: %d, operator: %d, inner level: %s\n", getExpressibleCount(Expressible.Category.OPERAND),
                 getExpressibleCount(Expressible.Category.OPERATOR), innerLevel);
         return  getExpressibleCount(Expressible.Category.OPERAND) == 1
                 && getExpressibleCount(Expressible.Category.OPERATOR) == 0
@@ -374,11 +383,11 @@ public class Expression {
             indices.add(internals_mutated.indexOf(e));
         }
 
-        Debug.debug("Indices of calverter.Expressible obs are: %s\n", Arrays.toString(indices.toArray()));
+    //    Debug.debug("Indices of calverter.Expressible obs are: %s\n", Arrays.toString(indices.toArray()));
         Collections.sort(indices);
         Collections.reverse(indices);
 
-        Debug.debug("Indices of calverter.Expressible obs sorted are: %s\n", Arrays.toString(indices.toArray()));
+    //    Debug.debug("Indices of calverter.Expressible obs sorted are: %s\n", Arrays.toString(indices.toArray()));
         // pivot
         int i = indices.get(indices.size() - 1);
         // add the result...
@@ -386,10 +395,13 @@ public class Expression {
         // we need to remove indices in descending order to prevent dynamic indices reallocation
         for (Integer k: indices)
             internals_mutated.remove(k + 1);
-        Debug.debug("After operation is replaced: %s\n",toString());
+      //  Debug.debug("After operation is replaced: %s\n",toString());
         return i;
     }
 
+    private static String toMode(boolean isFloatMode, Evaluable e) {
+        return isFloatMode ? e.toDecimal().toString() : e.toInteger().toString();
+    }
 
     /**
      * Computes an valid expression
@@ -398,14 +410,14 @@ public class Expression {
      * @throws ClassCastException
      * @throws IllegalStateException
      */
-     Evaluable compute_internal() throws PBEXPException {
+     String compute_internal() throws PBEXPException {
         Debug.info("INPUT EXPRESSION: %s\n", toString());
 
         if(getExpressibleCount(Expressible.Category.OPERATOR) == 0 && getExpressibleCount(Expressible.Category.OPERAND) == 0)
             throw new PBEXPException(PBEXPException.EXPRESSION_EMPTY, toString_internals(internals_original, false));
 
         if (isResolved())
-            return getOperands(internals_mutated).get(0);
+            return toMode(inFloatMode(), getOperands(internals_mutated).get(0));
 
         if (innerLevel > 0) {
             throw new PBEXPException(PBEXPException.PARENTHESES_NOT_CLOSED);
@@ -427,7 +439,7 @@ public class Expression {
         while (!isResolved()) {
             // warn: identity problems
             int index = internals_mutated.indexOf(current);
-            Debug.debug("Next index at top: %s\n", index);
+          //  Debug.debug("Next index at top: %s\n", index);
             Debug.info("**********Current calverter.Expressible: %s[%d]\n", current.toRep(), internals_mutated.indexOf(current));
             switch (current.toCategory()) {
                 case PARENTHESIS_OPEN: case PARENTHESIS_CLOSE: {
@@ -437,6 +449,8 @@ public class Expression {
                 }
                 case OPERAND: {
                     simplify(index);
+
+
                     neighbours = neighbours(internals_mutated.indexOf(current));
                     for (int i = 0; i < neighbours.size(); i++) {
                         Expressible expressible = neighbours.get(i);
@@ -546,7 +560,7 @@ public class Expression {
         simplify(internals_mutated.indexOf(candidate));
         Debug.info("FINISHED: %s: \n", toShortString());
         if (isResolved())
-            return candidate.toEvaluable() ;
+            return toMode(inFloatMode(), candidate.toEvaluable()) ;
         else
             throw new IllegalStateException("Something went wrong after the computation: " + toString_internals(internals_mutated, false));
     }
@@ -568,13 +582,13 @@ public class Expression {
             return tempResult;
         return new Evaluable() {
             @Override
-            public BigDecimal toDecimal() {
-                return BigDecimal.ZERO;
+            public Double toDecimal() {
+                return 0d;
             }
 
             @Override
-            public BigInteger toInteger() {
-                return BigInteger.ZERO;
+            public Long toInteger() {
+                return Long.valueOf(0);
             }
         };
     }
@@ -674,24 +688,48 @@ public class Expression {
             return neighbors;
     }
 
-    private Expression addExpressible(Expressible e) {
+    Expression addExpressible(Expressible e) {
         if (internals_mutated.contains(e)) {
             Debug.warn("calverter.Expressible %s already in the expression. Proceed with caution.\n", e.toRep());
         }
-
+        Debug.info("Adding %s to index %s", e.toString(), internals_mutated.size());
         if (e.toCategory() == Expressible.Category.CLEAR) {
             if (!internals_mutated.isEmpty())
-                internals_mutated.removeLast();
+            {
+                //todo
+                Expressible l = internals_mutated.getLast();
+                if (l.toCategory() == Expressible.Category.OPERAND && l.toRep().length() > 1){
+                    Number n = (Number) l;
+                    String tmp = n.getUserInput();
+                    tmp = tmp.substring(0, tmp.length() - 1);
+                    if (tmp.charAt(tmp.length() - 1) == '.')
+                        tmp = tmp.substring(0, tmp.length() - 1); // remove float point if no decimal portion is found
+                    // if n after tripped is empty then remove it from exp
+                    if (tmp.isEmpty())
+                        internals_mutated.removeLast();
+                    // else update it
+                    else
+                        n.setUserInput(tmp);
+                }
+                else {
+                    internals_mutated.removeLast();
+                }
+
+            }
             else
                 Debug.warn("Warn. Clearing empty Expression.");
             return this;
-        } else if (e.toCategory() == Expressible.Category.CLEAR_ALL) {
+        }
+
+        else if (e.toCategory() == Expressible.Category.CLEAR_ALL) {
             if (!internals_mutated.isEmpty())
                 internals_mutated.clear();
             else
                 Debug.warn("Warn. Clearing All empty Expression");
             return this;
-        } else {
+        }
+
+        else {
 
             if (e.toCategory() == Expressible.Category.PARENTHESIS_OPEN) {
                 innerLevel++;
@@ -705,6 +743,7 @@ public class Expression {
                 } else
                     throw new PBEXPException(closeOk, "Index of closing parenthesis: " + (internals_mutated.size()));
             }
+
             // raise priority if calverter.Expressible is calverter.Operator
             if (e.toCategory() == Expressible.Category.OPERATOR) {
                 Operator o = e.toOperator();
@@ -712,18 +751,48 @@ public class Expression {
             }
 
             if (internals_mutated.isEmpty() || Rules.validate(internals_mutated.getLast(), e)) {
+           //     Debug.debug("Validation passed first here. %s", internals_mutated.size());
                 //merge last operand if arg is numeric
                 if (!internals_mutated.isEmpty() && internals_mutated.getLast().isOperand() && e.isOperand()) {
-                    Debug.debug("[%d] MERGING %s\n", internals_mutated.size(), e.toRep());
-                    Number n = (Number) internals_mutated.getLast().toEvaluable();
-                    //float point rule violation is included too.
-                    if (!n.appendString(e.toRep())) {
-                        throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
-                                ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+                    Expressible last = internals_mutated.getLast();
+
+                    // check float point
+                    if (e.toCategory() == Expressible.Category.FLOAT &&
+                            last.toCategory() == Expressible.Category.OPERAND) {
+                        Debug.warn("Found float point adding case.");
+                        if (((Number) last.toEvaluable()).isFloatMode())
+                        {
+                            throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
+                                    ": Addition of " + e.toSimplifiedRep() + " to " +
+                                            toExpressionString(internals_mutated, false) + " failed. Floating point cannot be added to " +
+                                            "double operands.");
+                        }
+                        else {
+                            Debug.info("Floating point %s is being added to " + toExpressionString(internals_mutated, false), e.toRep());
+                            Number n = (Number) internals_mutated.getLast().toEvaluable();
+                            if (!n.appendString(e.toRep())) {
+                                throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
+                                        ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+                            } else {
+                                Debug.debug("Merge complete: %s\n", n.toString());
+                                floatLevel++;
+                            }
+                        }
                     } else {
-                        Debug.debug("Merge complete: %s\n", n.getUserInput());
+
+                        Debug.debug("[%d] MERGING %s\n", internals_mutated.size(), e.toRep());
+                        Number n = (Number) internals_mutated.getLast().toEvaluable();
+                        //float point rule violation is included too.
+                        if (!n.appendString(e.toRep())) {
+                            throw new PBEXPException(PBEXPException.NEIGHBOURING_RULES_VIOLATED,
+                                    ": Addition of " + e.toSimplifiedRep() + " to " + toExpressionString(internals_mutated, false) + " failed.");
+                        } else {
+                            Debug.debug("Merge complete: %s\n", n.getUserInput());
+                        }
                     }
-                } else {
+                }
+
+                else {
                     internals_original.add(e);
                     internals_mutated.add(e);
                 }
@@ -756,8 +825,9 @@ public class Expression {
         //todo javac1.7
         String[] r = new String[e.size()];
         for (int i = 0; i < e.size(); i++) {
-            r[i] = "";
+             r[i] = "";
             r[i] += verbose ? e.get(i).toRep() : e.get(i).toSimplifiedRep();
+
         }
         return Arrays.toString(r);
     }
@@ -785,6 +855,10 @@ public class Expression {
         for (Expressible s: expression)
             r += verbose ? s.toRep() : s.toSimplifiedRep();
         return r;
+    }
+
+    public int getComponentCount() {
+        return internals_mutated.size();
     }
 
     //********************************* PUBLICLY PROVIDED OPERATIONS **************************************************//

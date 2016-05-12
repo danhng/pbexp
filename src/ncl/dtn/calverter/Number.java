@@ -10,7 +10,6 @@ package calverter;// Maths Expressions Parser
 // You should have received a copy of the GNU General Public License along with this program.  If not,
 // see <http://www.gnu.org/licenses/>.
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -30,6 +29,10 @@ public class Number implements Evaluable, Expressible {
     public static final int MAX_BITS = Long.BYTES * 8;
 
     public static final String[] SUFFICES = {"0B", "0", "", "0X"};
+
+    private boolean isFloat;
+
+    private boolean pendingFloat;
 
     // digits of different formats
     public static final Character[][] DIGITS = {
@@ -66,6 +69,7 @@ public class Number implements Evaluable, Expressible {
 
     // constructors
     public Number(int modeIn, String rep) {
+      //  Debug.debug("Constructor called for: %s, mode %s" + rep, modeIn);
         this.modeIn = modeIn;
         setUserInput(rep);
     }
@@ -81,6 +85,7 @@ public class Number implements Evaluable, Expressible {
      * @param iValue
      */
     public Number(long iValue) {
+      //  Debug.debug("Constructor int called for: %s, mode ", iValue);
         modeIn = DEC_MODE;
         setUserInput(String.valueOf(iValue));
     }
@@ -90,6 +95,7 @@ public class Number implements Evaluable, Expressible {
      * @param fValue
      */
     public Number(double fValue) {
+    //    Debug.debug("Constructor int called for: %s, mode ", fValue);
         modeIn = DEC_MODE;
         setUserInput(String.valueOf(fValue));
     }
@@ -102,10 +108,24 @@ public class Number implements Evaluable, Expressible {
         return userInput;
     }
 
-    public void setUserInput(String userInput) {
-        this.userInput = userInput;
-        updateStringReps();
-        reloadI_F_Values();
+    void setUserInput(String userInput) {
+        Debug.info("set user input called: new is %s", userInput);
+        if (NumberHelper.isValidFormat(userInput, modeIn, false)) {
+            if (userInput.endsWith("."))
+            {
+                pendingFloat = true;
+                userInput = userInput.substring(0, userInput.length() - 1);
+                Debug.info("PendingFloat started. Legal userinput is: %s", userInput);
+            }
+            isFloat = modeIn == DEC_MODE && NumberHelper.isFloat(userInput);
+            if (isFloat)
+                pendingFloat = false;
+           // Debug.debug("isFloat is %s", isFloat);
+            this.userInput = userInput;
+            updateStringReps();
+            reloadI_F_Values();
+        }
+        Debug.warn("After setUserInput: %s", toString());
     }
 
     /**
@@ -113,14 +133,16 @@ public class Number implements Evaluable, Expressible {
      */
     private void refresh() {
         reps = NumberHelper.toFormats(userInput, modeIn, NO_FORMAT);
+     //   Debug.debug("reps after refresh are: %s", Arrays.toString(reps));
         // fixes bug on merging operands
 
 
         }
 
     private void reloadI_F_Values() {
+        isFloat = (modeIn == DEC_MODE) && NumberHelper.isFloat(userInput);
         if (modeIn == DEC_MODE) {
-            if (NumberHelper.isFloat(userInput)) {
+            if (isFloat) {
                 fvalue = Double.valueOf(userInput);
                 ivalue = Math.round(fvalue);
             } else {
@@ -152,7 +174,7 @@ public class Number implements Evaluable, Expressible {
     }
 
     public boolean isFloatMode() {
-        return NumberHelper.isFloat(userInput);
+        return isFloat;
     }
 
     public String[] getReps() {
@@ -172,11 +194,12 @@ public class Number implements Evaluable, Expressible {
     }
 
 
-
     @Override
     public String toString() {
-        return "calverter.Number{" +
-                "userInput='" + userInput + '\'' +
+        return "Number{" +
+                "isFloat=" + isFloat +
+                ", pendingFloat=" + pendingFloat +
+                ", userInput='" + userInput + '\'' +
                 ", modeIn=" + modeIn +
                 ", fvalue=" + fvalue +
                 ", ivalue=" + ivalue +
@@ -193,8 +216,8 @@ public class Number implements Evaluable, Expressible {
      * @return the decimal evaluated from the object
      */
     @Override
-    public BigDecimal toDecimal() {
-        return new BigDecimal(fvalue);
+    public Double toDecimal() {
+        return fvalue;
     }
 
     /**
@@ -206,8 +229,8 @@ public class Number implements Evaluable, Expressible {
      * @return the integer evaluated from the object
      */
     @Override
-    public BigInteger toInteger() {
-        return new BigInteger(String.valueOf(ivalue));
+    public Long toInteger() {
+        return ivalue;
     }
 
     private void updateStringReps() {
@@ -216,7 +239,7 @@ public class Number implements Evaluable, Expressible {
 
     @Override
     public String toRep() {
-        if (NumberHelper.isFloat(userInput))
+         if (isFloat)
             return String.valueOf(fvalue);
         return String.valueOf(ivalue);
     }
@@ -278,7 +301,21 @@ public class Number implements Evaluable, Expressible {
     public boolean appendChar(char in) {
         if (!isCharValid(in))
             return false;
-       setUserInput( userInput + String.valueOf(in));
+        if (modeIn == DEC_MODE) {
+            if (in == '.') {
+                pendingFloat = true;
+                isFloat = false;
+            }
+            else {
+                if (pendingFloat)
+                    setUserInput(userInput + "." + String.valueOf(in));
+                else
+                    setUserInput(userInput + String.valueOf(in));
+            }
+        }
+        else
+            setUserInput(userInput + String.valueOf(in));
+
         return true;
     }
 
