@@ -54,7 +54,7 @@ public class NumberHelper {
 //            return false;
 //        }
         // return true only if there are both int part and dec part and dec part is not empty
-        return rep.matches("-?[0-9]*\\.[0-9]*");
+        return rep.matches("-?[0-9]+\\.[0-9]+");
     }
 
     public static String[] toFormats(String rep, int modeIn, int format) {
@@ -62,9 +62,13 @@ public class NumberHelper {
 //                .stream().map(i -> toFormat(i, rep, modeIn, format)).collect(Collectors.toList()).toArray(new String[1]);
     //todo javac1.7 compat
         List<Integer> l = Arrays.asList(Number.BIN_MODE, Number.OCT_MODE, Number.DEC_MODE, Number.HEX_MODE);
+        boolean isFloat = modeIn == Number.DEC_MODE && isFloat(rep);
         String[] out = new String[4];
         for (int i = 0; i < l.size(); i++) {
-            out[i] = toFormat(i, rep, modeIn, format);
+            if (i != Number.DEC_MODE && isFloat)
+                out[i] = "null";
+            else
+                out[i] = toFormat(i, rep, modeIn, format);
         }
         return out;
     }
@@ -79,7 +83,7 @@ public class NumberHelper {
      * @throws NumberFormatException if {rep} is not a valid string representation of format {modeIn}
      */
     public static String toFormat(int modeOut, String rep, int modeIn, int format) {
-        if (!isValidFormat(rep, modeIn)) {
+        if (!isValidFormat(rep, modeIn, false)) {
             throw new NumberFormatException("String " + rep + " is not of format " + Number.FORMATS[modeIn]);
         }
         switch (modeOut) {
@@ -177,7 +181,7 @@ public class NumberHelper {
      * @return the flipped output
      */
     private static String flipBits(String binRep) {
-        if (!isValidFormat(binRep, Number.BIN_MODE)) {
+        if (!isValidFormat(binRep, Number.BIN_MODE, true)) {
             Debug.warn("flipBits requires a valid binary string. %s given.\n", binRep);
             return Number.NAN;
         }
@@ -294,23 +298,23 @@ public class NumberHelper {
      * @param mode the mode against which the input string is to be verified
      * @return true if the input string is valid, false otherwise
      */
-    public static boolean isValidFormat(String rep, int mode) {
+    public static boolean isValidFormat(String rep, int mode, boolean strict) {
         String regex;
         switch (mode) {
             case Number.BIN_MODE: {
-                regex = "[01]+";
+                regex = "([01]+)|(null)";
                 break;
             }
             case Number.OCT_MODE: {
-                regex = "[0-7]+";
+                regex = "([0-7]+)|(null)";
                 break;
             }
             case Number.DEC_MODE: {
-                regex = "-?[0-9]+\\.?[0-9]*";
+                regex = strict ? "(-?[0-9]+)|(-?[0-9]+\\.[0-9]+)|(null)" : "(-?[0-9]+)|(-?[0-9]*\\.[0-9]+)|(-?[0-9]+\\.[0-9]*)|(null)";
                 break;
             }
             case Number.HEX_MODE: {
-                regex = "[0G-9A-Fa-f]+";
+                regex = "([0-9A-Fa-f]+)|(null)";
                 break;
             }
             default:{

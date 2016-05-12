@@ -26,7 +26,7 @@ public interface Expressible{
     /**
      * Any calverter.Expressible can take on only one category which is either an operand (OPERAND) or an operator (OPERATOR)
      */
-    enum Category {OPERAND, OPERATOR, PARENTHESIS_OPEN, PARENTHESIS_CLOSE, CLEAR, CLEAR_ALL};
+    enum Category {OPERAND, OPERATOR, PARENTHESIS_OPEN, PARENTHESIS_CLOSE, CLEAR, CLEAR_ALL, FLOAT};
 
     /**
      * @return the string representation of the calverter.Expressible

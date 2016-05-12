@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 
 /**
@@ -71,6 +72,71 @@ public class ExpressionTest {
     }
 
     @Test
+    public void test_addExp_Float_Add_Point() {
+        Expression e2 = new Expression("1");
+        Number k = new Number(1);
+
+        e2.addExpressible(k).addExpressible(Expression.FloatPoint.get()).addExpressible(a);
+        Debug.debug(e2.toString());
+        assertTrue(Double.valueOf(e2.compute_internal())== 1.3);
+    }
+
+    @Test
+    public void test_addExp_Float_Basic_Operation() {
+        Expression e2 = new Expression("1");
+        Number k = new Number(1);
+
+        e2.addExpressibles(k,
+                Expression.FloatPoint.get(), a,
+                plus,
+                b, Expression.FloatPoint.get(), c);
+        Debug.debug(e2.toString());
+        assertTrue(Double.valueOf(e2.compute_internal()) == 3.7);
+    }
+
+    @Test
+    public void test_addExp_Float_Basic_Operation_1() {
+        Expression e2 = new Expression("1");
+        Number k = new Number(1);
+
+        e2.addExpressibles(k,
+                Expression.FloatPoint.get(), a,
+                plus,
+                b );
+        Debug.debug(e2.toString());
+        assertTrue(Double.valueOf(e2.compute_internal()) == 3.3);
+    }
+
+    @Test
+    public void test_addExp_Float_Basic_Operation_2() {
+        Expression e2 = new Expression("1");
+        Number k = new Number(1);
+
+        e2.addExpressibles(k,
+                Expression.FloatPoint.get(), a,
+                multi,
+                b );
+        Debug.debug(e2.toString());
+        assertTrue(Double.valueOf(e2.compute_internal()) == 2.6);
+    }
+
+
+    @Test
+    public void test_addExp_Float_Basic_Operation_3() {
+        Expression e2 = new Expression("1");
+        Number k = new Number(1);
+
+        e2.addExpressibles(k,
+                Expression.FloatPoint.get(),
+                multi,
+                b );
+        Debug.debug(e2.toString());
+        assertTrue(Double.valueOf(e2.compute_internal()) == 2);
+    }
+
+    //todo more test suites
+
+    @Test
     public void test_compute_internal_basic() {
         Expression e4 = new Expression("( 3 + 2 ) * ( 4 ");
         e4.addExpressibles(     Expression.Parenthesis.getOpening(), a, plus, b,
@@ -81,28 +147,34 @@ public class ExpressionTest {
                                         Expression.Parenthesis.getClosing(),
                                 Expression.Parenthesis.getClosing());
         // -5090;
-        assertTrue(e4.compute_internal().toDecimal().doubleValue() == -5090);
+        Debug.warn("Size of test compute internal: %s", e4.getComponentCount());
+        assertTrue(Double.valueOf(e4.compute_internal()) ==  -5090);
 
     }
 
     @Test
     public void test_compute_internal_nextOpes() {
+        Debug.info("TEST COMPUTE INTERNAL NEXTOPES");
         Expression e4 = new Expression("22");
         e4.addExpressibles(     a, b);
         // -5090;
         Debug.debug(e4.toShortString());
-        assertTrue(e4.compute_internal().toDecimal().doubleValue() == 32);
+        assertTrue(Double.valueOf(e4.compute_internal()) == 32);
 
+        Debug.info("TEST COMPUTE INTERNAL NEXTOPES END");
     }
 
     @Test
     public void test_compute_internal_clearance() {
+
+        Debug.info("TEST COMPUTE INTERNAL CLEARANCE");
         Expression e4 = new Expression("22");
         e4.addExpressibles(     a, plus, Expression.Clearance.getClear());
         // -5090;
         Debug.debug(e4.toShortString());
-        assertTrue(e4.compute_internal().toDecimal().doubleValue() == a.getFvalue());
+        assertTrue(Double.valueOf(e4.compute_internal()) == a.getFvalue());
 
+        Debug.info("TEST COMPUTE INTERNAL CLEARANCE END");
     }
 
     @Test
@@ -112,6 +184,16 @@ public class ExpressionTest {
         // -5090;
         Debug.debug(e4.toShortString());
         assertTrue(e4.isEmpty());
+
+    }
+
+    @Test
+    public void test_compute_internal_FloatPoint() {
+        Expression e4 = new Expression("22");
+        e4.addExpressibles(     a, Expression.FloatPoint.get());
+        Debug.debug(e4.toShortString());
+        // -5090;
+
 
     }
 }

@@ -68,44 +68,44 @@ public class Debug {
 
     public static void debug(String format, Object... args) {
         if (DEBUG >= DEBUG_LEVEL)
-            System.out.printf("[    DEBUG    ] " + format, args);
+            System.out.printf("[    DEBUG    ] " + format+ "\n", args);
     }
 
     public static void info(String format, Object... args) {
         if (INFO >= DEBUG_LEVEL)
-            System.out.printf("[    INFO     ] " + format, args);
+            System.out.printf("[    INFO     ] " + format+ "\n", args);
     }
     public static void notice(String format, Object... args) {
         if (NOTICE >= DEBUG_LEVEL)
-            System.out.printf("[    NOTI     ] " + format, args);
+            System.out.printf("[    NOTI     ] " + format+ "\n", args);
     }
 
     public static void warn(String format, Object... args) {
         if (WARN >= DEBUG_LEVEL)
-            System.out.printf("[    WARN     ] " + format, args);
+            System.out.printf("[    WARN     ] " + format+ "\n", args);
     }
 
     public static void error(boolean exit, String format, Object... args) {
         if (ERROR >= DEBUG_LEVEL)
             System.out.printf("[    ERROR    ] " + format, args);
         if (exit) {
-            emerg(true, "System is aborting. Cause: " + format, args);
+            emerg(true, "System is aborting. Cause: " + format+ "\n", args);
             System.exit(1);
         }
     }
     public static void crit(boolean exit, String format, Object... args) {
         if (CRIT >= DEBUG_LEVEL)
-            System.out.printf("[    CRIT      ] " + format, args);
+            System.out.printf("[    CRIT      ] " + format+ "\n", args);
         if (exit) {
-            emerg(true, "SYSTEM IS ABORTING! Cause: " + format, args);
+            emerg(true, "SYSTEM IS ABORTING! Cause: " + format+ "\n", args);
             System.exit(1);
         }
     }
 
     public static void emerg(boolean exit, String format, Object[] args) {
-        System.out.printf("[    EMERG    ] " + format, args);
+        System.out.printf("[    EMERG    ] " + format+ "\n", args);
         if (exit) {
-            emerg(true, "SYSTEM IS ABORTING! Cause: " + format, args);
+            emerg(true, "SYSTEM IS ABORTING! Cause: " + format+ "\n", args);
             System.exit(1);
         }
     }
