@@ -15,7 +15,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Danh Thanh Nguyen <d.t.nguyen@newcastle.ac.uk>
@@ -50,7 +49,7 @@ public class NumberHelper {
 //        String[] parts = rep.split("\\."); // split on decimal point
 //
 //        if (parts.length > 2) {
-//            Debug.debug("rep %s is not a legal number.\n", rep);
+//            Debug.gib1("rep %s is not a legal number.\n", rep);
 //            return false;
 //        }
         // return true only if there are both int part and dec part and dec part is not empty
@@ -157,7 +156,7 @@ public class NumberHelper {
                 // group digits as groups of modeOut (For convenient octal conversion)
                 String[] groups = groupDigits(bin, Number.GROUPS[modeOut], Number.DELIMITERS[Number.BIN_MODE])
                         .split(String.valueOf(Number.DELIMITERS[Number.BIN_MODE]));
-                Debug.debug("Groups of mode %d chars in binary is: %s\n", modeOut, Arrays.toString(groups));
+                Debug.gib1("Groups of mode %d chars in binary is: %s\n", modeOut, Arrays.toString(groups));
 
                 // convert each group of {modeOut} binary digits to a modeOut value
                 for (int i = groups.length - 1; i >= 0; i--) {
@@ -165,7 +164,7 @@ public class NumberHelper {
                     // no need to worry about sign here
                     int value = Integer.valueOf(bins, 2);
                     String modeOutChar = String.valueOf(Number.DIGITS[modeOut][value]);
-                    Debug.debug("bins: %s, value: %s, modeOut val: %s\n", bins, value, modeOutChar);
+                    Debug.gib1("bins: %s, value: %s, modeOut val: %s\n", bins, value, modeOutChar);
                     out = modeOutChar + out;
                 }
             }
@@ -239,7 +238,7 @@ public class NumberHelper {
                 // are groups flat?
                 // fill up the most significant group no matter whether the format says do stuffing or not as this is negative number
                 out = fillUpTo(out, Number.MAX_BITS, '0');
-                Debug.debug("pre out neg: %s\n", out);
+                Debug.gib1("pre out neg: %s\n", out);
                 char[] characters = out.toCharArray();
                 for(int i = 0; i < characters.length; i++) {
                     characters[i] = characters[i] == '0' ? '1' : '0';
@@ -251,7 +250,7 @@ public class NumberHelper {
         //if modeIn is not decimal then we need to expand all digits
         else if (modeIn == Number.HEX_MODE || modeIn == Number.OCT_MODE) {
             Long in = new BigInteger(rep, modeIn == Number.HEX_MODE ? 16 : 8).longValue();
-            Debug.debug("pre in non-dec int is: %d\n", in);
+            Debug.gib1("pre in non-dec int is: %d\n", in);
             out = Long.toBinaryString(in);
             out = (format & Number.DO_STUFFING) > 0 ? fillUpTo(out, getNearestMulOf(out.length(), Number.GROUPS[Number.BIN_MODE]), '0') : out;
             return (format & Number.DO_GROUPING) > 0 ? groupDigits(out, Number.GROUPS[Number.BIN_MODE], Number.DELIMITERS[Number.BIN_MODE]) : out;
@@ -288,7 +287,7 @@ public class NumberHelper {
         for (Character c : characters) {
             out += c;
         }
-        Debug.debug("After groupDigits call: %s\n", out);
+        Debug.gib1("After groupDigits call: %s\n", out);
         return out;
     }
 

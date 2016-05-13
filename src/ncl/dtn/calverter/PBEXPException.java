@@ -43,6 +43,8 @@ public class PBEXPException extends IllegalArgumentException {
 
     public static final int NEIGHBOURING_RULES_VIOLATED = 11;
 
+    private int id;
+
     private static final String[] MESSAGES = {
             "OK",
             "Operands cannot be neighbours",
@@ -58,8 +60,32 @@ public class PBEXPException extends IllegalArgumentException {
             "Neighbouring rules violated."
     };
 
+    private static final String[] MSGCODES = {
+            "OK",
+            "Neighbouring",
+            "Neighbouring",
+            "Incomplete",
+            "Classcast",
+            "Empty",
+            "Neighbouring",
+            "Parentheses",
+            "Parentheses",
+            "Incomplete",
+            "Bad",
+            "Neighbouring"
+    };
+
+    public static String getMessageCode(int id) {
+        return MSGCODES[id];
+    }
+
+    public int getId() {
+        return id;
+    }
+
     public PBEXPException(int id) {
         super(MESSAGES[id]);
+        this.id = id;
     }
 
     public PBEXPException(int id, String detailedMessage) {

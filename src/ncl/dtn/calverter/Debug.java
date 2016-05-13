@@ -20,10 +20,14 @@ import java.util.Objects;
  */
 public class Debug {
 
-    //    debug	Debug-level messages	"Opening config file ..."
+    public static final int GIB2  = -2;
+
+    public static final int GIB1 = -1;
+
+    //    gib1	Debug-level messages	"Opening config file ..."
     public static final int DEBUG = 1;
 
-    //    info	Informational.	"Server seems busy, (you may need to increase StartServers, or Min/MaxSpareServers)..."
+    //    gib2	Informational.	"Server seems busy, (you may need to increase StartServers, or Min/MaxSpareServers)..."
     public static final int INFO = 2;
 
     //    notice	Normal but significant condition.	"httpd: caught SIGBUS, attempting to dump core in ..."
@@ -52,19 +56,30 @@ public class Debug {
     }
 
     /**
-     * Set a new debug level.
-     * The new debug level must be one of the 8 levels specified {INFO, DEBUG, NOTICE, WARN, ERROR, CRIT, ALERT, EMERG}
-     * @param newLevel the new debug level
-     * @return the old debug level
+     * Set a new gib1 level.
+     * The new gib1 level must be one of the 8 levels specified {INFO, DEBUG, NOTICE, WARN, ERROR, CRIT, ALERT, EMERG}
+     * @param newLevel the new gib1 level
+     * @return the old gib1 level
      */
     public static int setDebugLevel(int newLevel) {
         int old = DEBUG_LEVEL;
-        if (newLevel >= DEBUG && newLevel <= EMERG)
+        if (newLevel >= GIB2 && newLevel <= EMERG)
             DEBUG_LEVEL = newLevel;
         else
             warn("New Debug level %d is not valid. \n", newLevel);
         return old;
     }
+
+    public static void gib1(String format, Object... args) {
+        if (GIB1 >= DEBUG_LEVEL)
+            System.out.printf("[    GIB1     ] " + format+ "\n", args);
+    }
+
+    public static void gib2(String format, Object... args) {
+        if (GIB2 >= DEBUG_LEVEL)
+            System.out.printf("[    GIB2     ] " + format+ "\n", args);
+    }
+
 
     public static void debug(String format, Object... args) {
         if (DEBUG >= DEBUG_LEVEL)
@@ -75,6 +90,7 @@ public class Debug {
         if (INFO >= DEBUG_LEVEL)
             System.out.printf("[    INFO     ] " + format+ "\n", args);
     }
+
     public static void notice(String format, Object... args) {
         if (NOTICE >= DEBUG_LEVEL)
             System.out.printf("[    NOTI     ] " + format+ "\n", args);

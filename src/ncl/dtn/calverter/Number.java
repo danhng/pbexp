@@ -10,7 +10,6 @@ package calverter;// Maths Expressions Parser
 // You should have received a copy of the GNU General Public License along with this program.  If not,
 // see <http://www.gnu.org/licenses/>.
 
-import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
@@ -20,8 +19,11 @@ import java.util.Arrays;
 public class Number implements Evaluable, Expressible {
 
     public static final int BIN_MODE = 0;
+
     public static final int OCT_MODE = 1;
+
     public static final int DEC_MODE = 2;
+
     public static final int HEX_MODE = 3;
 
     public static final String[] FORMATS = {"BINARY", "OCTAL", "DECIMAL", "HEXADECIMAL"};
@@ -69,7 +71,7 @@ public class Number implements Evaluable, Expressible {
 
     // constructors
     public Number(int modeIn, String rep) {
-      //  Debug.debug("Constructor called for: %s, mode %s" + rep, modeIn);
+      //  Debug.gib1("Constructor called for: %s, mode %s" + rep, modeIn);
         this.modeIn = modeIn;
         setUserInput(rep);
     }
@@ -85,7 +87,7 @@ public class Number implements Evaluable, Expressible {
      * @param iValue
      */
     public Number(long iValue) {
-      //  Debug.debug("Constructor int called for: %s, mode ", iValue);
+      //  Debug.gib1("Constructor int called for: %s, mode ", iValue);
         modeIn = DEC_MODE;
         setUserInput(String.valueOf(iValue));
     }
@@ -95,7 +97,7 @@ public class Number implements Evaluable, Expressible {
      * @param fValue
      */
     public Number(double fValue) {
-    //    Debug.debug("Constructor int called for: %s, mode ", fValue);
+    //    Debug.gib1("Constructor int called for: %s, mode ", fValue);
         modeIn = DEC_MODE;
         setUserInput(String.valueOf(fValue));
     }
@@ -109,18 +111,18 @@ public class Number implements Evaluable, Expressible {
     }
 
     void setUserInput(String userInput) {
-        Debug.info("set user input called: new is %s", userInput);
+        Debug.gib2("set user input called: new is %s", userInput);
         if (NumberHelper.isValidFormat(userInput, modeIn, false)) {
             if (userInput.endsWith("."))
             {
                 pendingFloat = true;
                 userInput = userInput.substring(0, userInput.length() - 1);
-                Debug.info("PendingFloat started. Legal userinput is: %s", userInput);
+                Debug.gib2("PendingFloat started. Legal userinput is: %s", userInput);
             }
             isFloat = modeIn == DEC_MODE && NumberHelper.isFloat(userInput);
             if (isFloat)
                 pendingFloat = false;
-           // Debug.debug("isFloat is %s", isFloat);
+           // Debug.gib1("isFloat is %s", isFloat);
             this.userInput = userInput;
             updateStringReps();
             reloadI_F_Values();
@@ -133,7 +135,7 @@ public class Number implements Evaluable, Expressible {
      */
     private void refresh() {
         reps = NumberHelper.toFormats(userInput, modeIn, NO_FORMAT);
-     //   Debug.debug("reps after refresh are: %s", Arrays.toString(reps));
+     //   Debug.gib1("reps after refresh are: %s", Arrays.toString(reps));
         // fixes bug on merging operands
 
 

@@ -43,5 +43,9 @@
 			destfile="${dist.dir}/${project.name}-${version}.${subversion}.${revision}_${build.version}_c${targetVM.version}.jar"
 			basedir="${build.dir}"			 
 			excludes="**/*Test*.class" />
+		<jar
+				destfile="${dist.dir}/${project.name}-${version}.${subversion}.${revision}.jar"
+				basedir="${build.dir}"
+				excludes="**/*Test*.class" />
 	</target>
 </project>
