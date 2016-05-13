@@ -47,6 +47,8 @@ public class PBEXPException extends IllegalArgumentException {
 
     public static final int NUMBER_INVALID = 13;
 
+    public static final int DUPLICATION_MEMORY = 14;
+
     private int id;
 
     private static final String[] MESSAGES = {
@@ -63,7 +65,8 @@ public class PBEXPException extends IllegalArgumentException {
             "The current element is not recognised",
             "Neighbouring rules violated.",
             "Input is out of bound",
-            "Invalid number format"
+            "Invalid number format",
+            "Operands already been added"
     };
 
     private static final String[] MSGCODES = {
@@ -80,7 +83,8 @@ public class PBEXPException extends IllegalArgumentException {
             "Bad",
             "Neighbouring",
             "Out of bound",
-            "Invalid number"
+            "Invalid number",
+            "Duplicated Memory"
     };
 
     public static String getMessageCode(int id) {

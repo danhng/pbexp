@@ -126,8 +126,7 @@ public class Number implements Evaluable, Expressible {
                 pendingFloat = false;
            // Debug.gib1("isFloat is %s", isFloat);
             this.userInput = userInput;
-            reloadI_F_Values();
-            updateStringReps();
+            reload();
         }
         Debug.warn("After setUserInput: %s", toString());
     }
@@ -153,7 +152,7 @@ public class Number implements Evaluable, Expressible {
 
 
 
-    private void reloadI_F_Values() {
+    private void reload() {
         isFloat = (modeIn == DEC_MODE) && NumberHelper.isFloat(userInput);
         if (modeIn == DEC_MODE) {
             if (isFloat) {
@@ -169,8 +168,10 @@ public class Number implements Evaluable, Expressible {
                 ivalue = Long.valueOf(userInput);
                 fvalue = ivalue;
             }
+            updateStringReps();
         }
         else {
+            updateStringReps();
             ivalue = Long.valueOf(reps[DEC_MODE]);
             fvalue = ivalue;
         }

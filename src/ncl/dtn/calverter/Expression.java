@@ -537,6 +537,7 @@ public class Expression {
      * @throws IllegalStateException
      */
      public String compute(boolean suppress) throws PBEXPException {
+         Expression expressionTmp = makeCopy(this);
         Debug.gib2("INPUT EXPRESSION: %s\n", toString());
 
         if(getExpressibleCount(Expressible.Category.OPERATOR) == 0 && getExpressibleCount(Expressible.Category.OPERAND) == 0) {
@@ -546,30 +547,44 @@ public class Expression {
         }
         if (isResolved())
             return toMode(inFloatMode(), getOperands(internals_mutated).get(0));
+        Debug.warn(toString_internals(internals_mutated, true));
 
          // order of suppressing operations matter!
 
          // simplify on suppress demand: remove the last pending operator if needs be
          if (suppress) {
-             if (getLastComponent().isOperator()) {
-                 Operator r = getLastComponent().toOperator();
+             if (internals_mutated.getLast().isOperator()) {
+                 Operator r = internals_mutated.getLast().toOperator();
                  if (r.isBinary() || (r.isUnary() || r.getDirection() == Operator.AssociatingDirection.RIGHT)) {
                      Debug.gib1("Suppress demand: Removing %s", r.toString());
                      internals_mutated.removeLast();
                  }
              }
-             Debug.debug("POST SUPPRESS LAST REMOVAL: %s", toExpressionString(internals_mutated, true));
-
          }
 
         if (innerLevel > 0) {
             // suppress then we do this
             if (suppress) {
+                int innerLevel_tmp = innerLevel;
+               while (internals_mutated.getLast().toCategory() == Expressible.Category.PARENTHESIS_OPEN) {
+                   Debug.gib1("Suppress demand: Removing parenthesis, innerlevel: %s", innerLevel_tmp);
+                   internals_mutated.removeLast();
+                   innerLevel--;
+               }
+                if (internals_mutated.getLast().isOperator()) {
+                    Operator r = internals_mutated.getLast().toOperator();
+                    if (r.isBinary() || (r.isUnary() || r.getDirection() == Operator.AssociatingDirection.RIGHT)) {
+                        Debug.gib1("Suppress demand: Removing %s", r.toString());
+                        internals_mutated.removeLast();
+                    }
+                }
                 for (int i = innerLevel; i > 0; i--) {
                     Debug.gib1("Suppress demand: Adding closing parenthesis to reduce innerLevel to %s", innerLevel);
                     addExpressible(Parenthesis.getClosing());
                 }
+                Debug.warn("POST SUPPRESS LAST REMOVAL: %s", toExpressionString(internals_mutated, true));
             }
+
             else {
                 throw new PBEXPException(PBEXPException.PARENTHESES_NOT_CLOSED);
             }
@@ -714,11 +729,26 @@ public class Expression {
         }
         Expressible candidate = (Expressible) getOperands(internals_mutated).get(0);
         simplify(internals_mutated.indexOf(candidate));
-        Debug.gib2("FINISHED: %s: \n", toShortString());
-        if (isResolved())
-            return toMode(inFloatMode(), candidate.toEvaluable()) ;
+        Debug.warn("FINISHED: %s: \n", toString());
+
+        String r = toMode(inFloatMode(), candidate.toEvaluable());
+
+        if (isResolved()) {
+            // reset
+            this.internals_original = expressionTmp.internals_original;
+            this.internals_mutated = expressionTmp.internals_mutated;
+            this.humanReadable = expressionTmp.humanReadable;
+            innerLevel = expressionTmp.innerLevel;
+            floatLevel = expressionTmp.floatLevel;
+            rep = expressionTmp.rep;
+            tempResult = expressionTmp.tempResult;
+            resolved = expressionTmp.resolved;
+
+            return r;
+        }
         else
-            throw new IllegalStateException("Something went wrong after the computation: " + toString_internals(internals_mutated, false));
+            throw new IllegalStateException("Something went wrong after the computation: " +
+                    toString_internals(internals_mutated, false));
     }
 
     private static List<Evaluable> getOperands(LinkedList<Expressible> e) {
@@ -755,14 +785,15 @@ public class Expression {
             Debug.warn("Only Operand objects can be simplified. %s given\n", category);
             return;
         }
-        Debug.gib1("Attempting to simplify for operand index: %d\n", operationIndex);
+        Debug.gib1("Attempting to sismplify for operand index: %d\n", operationIndex);
         if (isOutOfBound(operationIndex)) {
             Debug.warn("calverter.Operation Index %s is out of bound: %d\n", operationIndex, internals_mutated.size());
             return;
         }
         int open = operationIndex-1;
         int close = operationIndex+1;
-        while (!isOutOfBound(open) && !isOutOfBound(close) && internals_mutated.get(open).toCategory() == Expressible.Category.PARENTHESIS_OPEN
+        while (!isOutOfBound(open) && !isOutOfBound(close) &&
+                internals_mutated.get(open).toCategory() == Expressible.Category.PARENTHESIS_OPEN
                 && internals_mutated.get(close).toCategory() == Expressible.Category.PARENTHESIS_CLOSE) {
 
             // order of removals matters due to dynamic resize
@@ -844,11 +875,19 @@ public class Expression {
     }
 
 
-   public Expression addExpressible(Expressible e) {
+    public Expression addExpressible(Expressible e) {
+        return addExpressible(e , true);
+    }
+
+   public Expression addExpressible(Expressible e, boolean cloneDup) {
        //todo performance
        invalidatePrevComputation();
         if (internals_mutated.contains(e)) {
             Debug.warn("calverter.Expressible %s already in the expression. Proceed with caution.\n", e.toRep());
+            if (cloneDup)
+                e = e.clone();
+            else
+                return this;
         }
         Debug.gib2("Adding %s to index %s", e.toString(), internals_mutated.size());
         if (e.toCategory() == Expressible.Category.CLEAR) {

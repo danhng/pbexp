@@ -62,7 +62,7 @@ public class ExpressionTest {
 
     @Before
     public void setUp() throws Exception {
-        Debug.setDebugLevel(Debug.GIB1);
+        Debug.setDebugLevel(Debug.DEBUG);
     }
 
     @After
@@ -78,6 +78,17 @@ public class ExpressionTest {
         e2.addExpressible(k).addExpressible(Expression.FloatPoint.get()).addExpressible(a);
         Debug.gib1(e2.toString());
         assertTrue(Double.valueOf(e2.compute(false))== 1.3);
+    }
+
+    @Test
+    public void test_Misc() {
+
+        Expression e4 = new Expression("( 3 + 2 ) * ( 4 ", true);
+        e4.addExpressibles(a, plus, a);
+        // -5090;
+        Debug.warn("Size of test compute internal: %s", e4.getComponentCount());
+        assertTrue(Double.valueOf(e4.compute(true)) ==  6);
+
     }
 
     @Test
@@ -115,6 +126,20 @@ public class ExpressionTest {
         assertTrue(Double.valueOf(e4.compute(true)) ==  -5090);
 
     }
+
+    @Test
+    public void test_Suppress_3() {
+
+        Expression e4 = new Expression("( 3 + 2 ) * ( 4 ", true);
+        e4.addExpressibles(
+                a, plus, Expression.Parenthesis.getOpening());
+        // -5090;
+        Debug.warn("Size of test compute internal: %s", e4.getComponentCount());
+        assertTrue(Double.valueOf(e4.compute(true)) ==  3);
+        assertTrue(e4.getComponentCount() == 3);
+
+    }
+
 
     @Test
     public void test_OutoutBound() {
@@ -169,7 +194,7 @@ public class ExpressionTest {
                 Expression.FloatPoint.get(), a,
                 plus,
                 b, Expression.FloatPoint.get(), c);
-        Debug.gib1(e2.toString());
+        Debug.warn(e2.toString());
         assertTrue(Double.valueOf(e2.compute(false)) == 3.7);
     }
 
@@ -182,7 +207,7 @@ public class ExpressionTest {
                 Expression.FloatPoint.get(), a,
                 plus,
                 b );
-        Debug.gib1(e2.toString());
+        Debug.warn(e2.toString());
         assertTrue(Double.valueOf(e2.compute(false)) == 3.3);
     }
 
@@ -195,7 +220,7 @@ public class ExpressionTest {
                 Expression.FloatPoint.get(), a,
                 multi,
                 b );
-        Debug.gib1(e2.toString());
+        Debug.warn(e2.toString());
         assertTrue(Double.valueOf(e2.compute(false)) == 2.6);
     }
 
