@@ -43,6 +43,10 @@ public class PBEXPException extends IllegalArgumentException {
 
     public static final int NEIGHBOURING_RULES_VIOLATED = 11;
 
+    public static final int NUMBER_OUT_OF_BOUND = 12;
+
+    public static final int NUMBER_INVALID = 13;
+
     private int id;
 
     private static final String[] MESSAGES = {
@@ -57,7 +61,9 @@ public class PBEXPException extends IllegalArgumentException {
             "Some closing parenthesis is not opened",
             "calverter.Expression enclosed is incomplete",
             "The current element is not recognised",
-            "Neighbouring rules violated."
+            "Neighbouring rules violated.",
+            "Input is out of bound",
+            "Invalid number format"
     };
 
     private static final String[] MSGCODES = {
@@ -72,7 +78,9 @@ public class PBEXPException extends IllegalArgumentException {
             "Parentheses",
             "Incomplete",
             "Bad",
-            "Neighbouring"
+            "Neighbouring",
+            "Out of bound",
+            "Invalid number"
     };
 
     public static String getMessageCode(int id) {
@@ -90,6 +98,7 @@ public class PBEXPException extends IllegalArgumentException {
 
     public PBEXPException(int id, String detailedMessage) {
         super(MESSAGES[id] + ": " + detailedMessage);
+        this.id = id;
     }
 
     /**

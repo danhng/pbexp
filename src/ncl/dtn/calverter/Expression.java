@@ -61,7 +61,7 @@ public class Expression {
         this.suppress = suppress;
     }
 
-    private static String appendExpressibleHumanReadable(Expressible e, String r) {
+    public static String appendExpressibleHumanReadable(Expressible e, String r) {
         switch (e.toCategory()) {
             case PARENTHESIS_CLOSE:
             case PARENTHESIS_OPEN:
@@ -163,6 +163,10 @@ public class Expression {
     public boolean isEmpty() {
         return internals_original.size() == 0;
     }
+
+    /**
+     * Class clearance
+     */
     public static class Clearance implements Expressible {
         private Category type;
 
@@ -575,7 +579,6 @@ public class Expression {
         }
 
 
-
          // from this point onwards, if it's an error it means the expression is syntactically wrong... todo ?
 
         // makes mapping of operators
@@ -603,7 +606,6 @@ public class Expression {
                 }
                 case OPERAND: {
                     simplify(index);
-
 
                     neighbours = neighbours(internals_mutated.indexOf(current));
                     for (int i = 0; i < neighbours.size(); i++) {
@@ -877,12 +879,16 @@ public class Expression {
         }
 
         else if (e.toCategory() == Expressible.Category.CLEAR_ALL) {
-            if (!internals_mutated.isEmpty()) {
+            if (!internals_original.isEmpty()) {
                 internals_original.clear();
-                invalidatePrevComputation();
             }
-            else
+            else {
                 Debug.warn("Warn. Clearing All empty Expression");
+            }
+            invalidatePrevComputation();
+            innerLevel = 0;
+            floatLevel = 0;
+            rep = "";
         }
 
         else {

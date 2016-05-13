@@ -117,6 +117,21 @@ public class ExpressionTest {
     }
 
     @Test
+    public void test_OutoutBound() {
+        Expression e2 = new Expression("1", false);
+        Number k = new Number(1);
+        try {
+            for (int i = 0; i < 20; i++)
+                e2.addExpressible(k);
+        }
+        catch (PBEXPException e) {
+            Debug.debug("Error id%s", e.getId());
+            assertTrue(e.getId() == PBEXPException.NUMBER_OUT_OF_BOUND);
+        }
+//                9223372036854775807
+    }
+
+    @Test
     public void test_Humanread_1() {
         Expression e2 = new Expression("1", false);
         Number k = new Number(1);

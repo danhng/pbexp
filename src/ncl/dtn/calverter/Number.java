@@ -10,6 +10,8 @@ package calverter;// Maths Expressions Parser
 // You should have received a copy of the GNU General Public License along with this program.  If not,
 // see <http://www.gnu.org/licenses/>.
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
@@ -110,7 +112,7 @@ public class Number implements Evaluable, Expressible {
         return userInput;
     }
 
-    void setUserInput(String userInput) {
+    void setUserInput(String userInput) throws NumberFormatException {
         Debug.gib2("set user input called: new is %s", userInput);
         if (NumberHelper.isValidFormat(userInput, modeIn, false)) {
             if (userInput.endsWith("."))
@@ -124,8 +126,8 @@ public class Number implements Evaluable, Expressible {
                 pendingFloat = false;
            // Debug.gib1("isFloat is %s", isFloat);
             this.userInput = userInput;
-            updateStringReps();
             reloadI_F_Values();
+            updateStringReps();
         }
         Debug.warn("After setUserInput: %s", toString());
     }
@@ -134,20 +136,36 @@ public class Number implements Evaluable, Expressible {
      * Re-update string reps based on the user input
      */
     private void refresh() {
-        reps = NumberHelper.toFormats(userInput, modeIn, NO_FORMAT);
+        try {
+            reps = NumberHelper.toFormats(userInput, modeIn, NO_FORMAT);
+        }
+        catch (NumberFormatException e){
+            throw new PBEXPException(PBEXPException.NUMBER_INVALID);
+        }
      //   Debug.gib1("reps after refresh are: %s", Arrays.toString(reps));
         // fixes bug on merging operands
 
 
         }
 
+    private static BigInteger iBound = new BigInteger(String.valueOf(Long.MAX_VALUE));
+    private static BigDecimal fBound = new BigDecimal(String.valueOf(Double.MAX_VALUE));
+
+
+
     private void reloadI_F_Values() {
         isFloat = (modeIn == DEC_MODE) && NumberHelper.isFloat(userInput);
         if (modeIn == DEC_MODE) {
             if (isFloat) {
+                BigDecimal b = new BigDecimal(userInput);
+                if (b.compareTo(fBound) >= 0)
+                    throw new PBEXPException(PBEXPException.NUMBER_OUT_OF_BOUND, "Type double: " + userInput);
                 fvalue = Double.valueOf(userInput);
                 ivalue = Math.round(fvalue);
             } else {
+                BigInteger b = new BigInteger(userInput);
+                if (b.compareTo(iBound) >= 0)
+                    throw new PBEXPException(PBEXPException.NUMBER_OUT_OF_BOUND, "Type long: " + userInput);
                 ivalue = Long.valueOf(userInput);
                 fvalue = ivalue;
             }
